@@ -30,6 +30,10 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+# TODO: add postgreSQL connection
+# TODO: add django rest framework
+# TODO: add django jwt support
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
