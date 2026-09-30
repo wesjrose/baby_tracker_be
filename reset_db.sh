@@ -5,6 +5,8 @@
 #   1. Drops every table in the database configured in config/settings.py (.env)
 #   2. Deletes all migration files in the project's apps
 #   3. Regenerates migrations and applies them
+#   4. Creates a superuser from DJANGO_SUPERUSER_EMAIL / DJANGO_SUPERUSER_PASSWORD
+#      in .env
 #
 # THIS DESTROYS ALL DATA. Never run it against a database you care about.
 #
@@ -31,8 +33,17 @@ fi
 DB_TARGET=$("$PYTHON" manage.py shell -c '
 from django.conf import settings
 db = settings.DATABASES["default"]
-print(f"{db[\"NAME\"]} on {db[\"HOST\"]}:{db[\"PORT\"]} as {db[\"USER\"]}")
+print("{NAME} on {HOST}:{PORT} as {USER}".format(**db))
 ')
+
+# Check the superuser credentials before destroying anything. settings.py loads
+# .env into the environment, so they are visible here and to createsuperuser.
+"$PYTHON" manage.py shell -c '
+import os, sys
+missing = [v for v in ("DJANGO_SUPERUSER_EMAIL", "DJANGO_SUPERUSER_PASSWORD") if not os.environ.get(v)]
+if missing:
+    sys.exit("Missing in .env: " + ", ".join(missing))
+'
 
 echo "This will DELETE ALL TABLES AND DATA in: $DB_TARGET"
 echo "and delete every migration file in this project."
@@ -70,4 +81,9 @@ echo "==> Generating migrations"
 echo "==> Applying migrations"
 "$PYTHON" manage.py migrate
 
-echo "Done. Create an admin with: $PYTHON manage.py createsuperuser"
+echo "==> Creating superuser"
+# With --noinput, createsuperuser reads DJANGO_SUPERUSER_EMAIL and
+# DJANGO_SUPERUSER_PASSWORD from the environment.
+"$PYTHON" manage.py createsuperuser --noinput
+
+echo "Done."
