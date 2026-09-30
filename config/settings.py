@@ -18,13 +18,13 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / ".env", override=True)
+load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-v91bi4a^2l012o+fhfjs6#zz2i@gfm!x#e5*=m0)g_%)kl5b0%'
+SECRET_KEY = os.environ["APP_SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -34,7 +34,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-# TODO: add django jwt support
+AUTH_USER_MODEL = "user.User"
 
 INSTALLED_APPS = [
     'django.contrib.admin',
