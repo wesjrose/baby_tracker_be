@@ -2,15 +2,7 @@ from cryptography.fernet import Fernet
 from django.conf import settings
 from django.db import models
 
-class EncryptedTextField(models.TextField):
-    """
-    Stores text encrypted with Fernet; plain str in python, cipthertext in the DB.
-    
-    """
-
-
-    
-    def _fernet(self):
+def _fernet():
 
         try:
             fern = Fernet(settings.ENCRYPTION_KEY)
@@ -19,16 +11,28 @@ class EncryptedTextField(models.TextField):
             raise e
 
         return fern
+
+class EncryptedValue(str):
+    """Ciphertext as loaded from the DB. Call .decrypt() to get the plain text."""
+
+    def decrypt(self):
+        return _fernet().decrypt(self.encode()).decode()
+
+class EncryptedTextField(models.TextField):
+    """
+    Stores text encrypted with Fernet; plain str in python, cipthertext in the DB.
     
+    """
+
     def get_prep_value(self, value):
         value = super().get_prep_value(value)
         if value is None:
             return None
-        return self._fernet().encrypt(value.encode()).decode()
+        return _fernet().encrypt(value.encode()).decode()
         
     def from_db_value(self, value, expression, connection):
         if value is None:
             return None
-        return self._fernet().decrypt(value.encode()).decode()
+        return EncryptedValue(value)
 
-# TODO: how is key rotation handled??
+# TODO: handle key rotation

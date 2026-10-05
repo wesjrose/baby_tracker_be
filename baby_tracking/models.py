@@ -9,8 +9,9 @@ import uuid
 
 class Baby(models.Model):
     id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4)
-    name = EncryptedTextField()
+    name = models.CharField()
 
+# TODO: change name to an encrypted field before releasing to production
 
 class GuardianMapping(models.Model):
     id = models.UUIDField(primary_key=True, unique=True, editable=True, default=uuid.uuid4)
