@@ -41,3 +41,7 @@ dist/
 .idea/
 *.swp
 .DS_Store
+
+# Automatically keep migrations out of scope, must force to add avoiding accidental
+# commits
+*/migrations/*

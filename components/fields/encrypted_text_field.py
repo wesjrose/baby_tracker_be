@@ -8,17 +8,12 @@ class EncryptedTextField(models.TextField):
     
     """
 
-    def __init__(self, *args, encryption_key: str, **kwargs):
 
-        print(f"The encryption key sent is: {encryption_key}")
-
-        self._fernet()
-        self.encryption_key = encryption_key
     
     def _fernet(self):
 
         try:
-            fern = Fernet(self.encryption_key)
+            fern = Fernet(settings.ENCRYPTION_KEY)
         except (ValueError, TypeError) as e:
             print(f"encryption_key is not properly formed")
             raise e

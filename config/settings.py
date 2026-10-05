@@ -25,6 +25,9 @@ load_dotenv(BASE_DIR / ".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ["APP_SECRET_KEY"]
+ENCRYPTION_KEY= os.environ["BABY_ENCRYPTION_KEY"]
+
+# TODO: configure logging
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -45,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "rest_framework",
     "user",
+    "baby_tracking",
 ]
 
 MIDDLEWARE = [
