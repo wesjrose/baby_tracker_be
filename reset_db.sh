@@ -69,9 +69,10 @@ print(f"Dropped {len(tables)} table(s)")
 '
 
 echo "==> Deleting migration files"
+# Uses -exec rm rather than -delete: -delete implies -depth, which disables -prune.
 find . \( -path ./.venv -o -path ./venv -o -path ./env -o -path ./.git \) -prune -o \
     -path '*/migrations/*' \( -name '*.py' -o -name '*.pyc' \) ! -name '__init__.py' \
-    -print -delete
+    -print -exec rm -f {} +
 find . \( -path ./.venv -o -path ./venv -o -path ./env -o -path ./.git \) -prune -o \
     -path '*/migrations/__pycache__' -type d -print -exec rm -rf {} +
 
