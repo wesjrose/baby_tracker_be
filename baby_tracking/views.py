@@ -17,7 +17,7 @@ from .models import GuardianMapping
 # TODO: add user to the baby (will need tokenized version to check)
 
 
-class UserView(APIView):
+class BabyView(APIView):
 
     permission_classes = [IsAuthenticated]
 
