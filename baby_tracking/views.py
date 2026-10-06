@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from .serializers import BabySerializer
 from .models import GuardianMapping, BabyEvent, Baby
 from .permissions import isGuardian
-from events.event_handler import verify_event
+from .events.event_handler import verify_event
 
 # Create your views here.
 
@@ -50,9 +50,9 @@ class EventView(APIView):
         verify_event(event)
 
         event = BabyEvent.objects.create(
-            type=event.pop("type"),
+            type=event["type"],
             baby=baby,
-            notes=event.pop("notes", None),
-            created_at=event.pop("created_at"),
+            notes=event.get("notes", None),
+            created_at=event["created_at"],
             data=event,
         )

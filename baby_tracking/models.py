@@ -34,6 +34,9 @@ class BabyEvent(models.Model):
     id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4)
     baby = models.ForeignKey(to=Baby, on_delete=models.CASCADE)
     type = models.CharField()
-    data = models.JSONField(default=dict, blank=True, default=None)
+    data = models.JSONField(
+        default=None,
+        blank=True,
+    )
     created_at = models.CharField()
     notes = models.TextField(max_length=1000, default=None)

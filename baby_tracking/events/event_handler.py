@@ -19,7 +19,7 @@ EVENT_TYPES = {
 }
 
 
-def verify_event(self, event: dict):
+def verify_event(event: dict):
 
     event_type = event.get("type", None)
 
