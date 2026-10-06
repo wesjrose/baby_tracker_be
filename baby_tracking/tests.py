@@ -10,7 +10,7 @@ User = get_user_model()
 
 class CreateBabyTests(APITestCase):
     def setUp(self):
-        self.url = reverse("create-baby")
+        self.url = reverse("baby")
         self.payload = {"name": "Charlie"}
         self.email = "parent@example.com"
         self.password = "s3cure-Passw0rd!"
@@ -83,6 +83,8 @@ class CreateEventTests(APITestCase):
         self.assertEqual(event.type, event_type)
         self.assertEqual(event.created_at, self.base_payload["created_at"])
         self.assertEqual(event.notes, self.base_payload["notes"])
+        # print(f"The sent data is:\n{data}")
+        # print(f"The obj data is:\n{event.data}")
         self.assertEqual(event.data, data)
 
     def test_create_event_without_credentials_is_rejected(self):
@@ -113,9 +115,7 @@ class CreateEventTests(APITestCase):
         self.assertFalse(BabyEvent.objects.exists())
 
     def test_create_bottle_feed_event(self):
-        self.assert_event_created(
-            "bottle_feed", {"amount": 120, "contents": "formula"}
-        )
+        self.assert_event_created("bottle_feed", {"amount": 120, "contents": "formula"})
 
     def test_create_breast_feed_event(self):
         self.assert_event_created("breast_feed", {"left_time": 10, "right_time": 15})

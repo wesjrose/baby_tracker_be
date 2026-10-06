@@ -1,14 +1,34 @@
 from django.shortcuts import render, get_object_or_404
+from django.core.exceptions import ValidationError
 
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .serializers import BabySerializer
+from .serializers import (
+    BabySerializer,
+    BottleFeedSerializer,
+    BreastFeedSerializer,
+    DiaperSerializer,
+)
 from .models import GuardianMapping, BabyEvent, Baby
 from .permissions import isGuardian
-from .events.event_handler import verify_event
+
+EVENT_TYPES = {
+    "bottle_feed": BottleFeedSerializer,
+    "breast_feed": BreastFeedSerializer,
+    "diaper": DiaperSerializer,
+}
+
+
+def get_event_serializer(event: dict):
+
+    event_type = event.get("type", None)
+    if event_type not in EVENT_TYPES:
+        raise ValidationError(f"{event_type} is not a valid event type")
+    return EVENT_TYPES[event_type](data=event)
+
 
 # Create your views here.
 
@@ -44,15 +64,16 @@ class EventView(APIView):
         baby = get_object_or_404(Baby, pk=baby_id)
         self.check_object_permissions(request, baby)
 
-        event = request.data
-
-        # confirming that the event is properly formed
-        verify_event(event)
+        data = request.data
+        serializer = get_event_serializer(data)
+        serializer.is_valid(raise_exception=True)
 
         event = BabyEvent.objects.create(
-            type=event["type"],
+            type=data["type"],
             baby=baby,
-            notes=event.get("notes", None),
-            created_at=event["created_at"],
-            data=event,
+            notes=data.get("notes", None),
+            created_at=data["created_at"],
+            data=data["data"],
         )
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
