@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions  import AllowAny
 
-from .serializers import CreateUserSerializer
+from .serializers import UserSerializer
 # Create your views here.
 
 
@@ -15,7 +15,7 @@ class UserView(APIView):
         """
         This endpoint is for creating a new user
         """
-        serializer = CreateUserSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
