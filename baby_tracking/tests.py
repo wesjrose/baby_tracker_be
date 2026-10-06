@@ -117,6 +117,23 @@ class CreateEventTests(APITestCase):
     def test_create_bottle_feed_event(self):
         self.assert_event_created("bottle_feed", {"amount": 120, "contents": "formula"})
 
+    def test_create_bottle_feed_event_without_amount_is_rejected(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "type": "bottle_feed",
+                **self.base_payload,
+                "data": {"contents": "formula"},
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("amount", response.data["data"])
+        self.assertFalse(BabyEvent.objects.exists())
+
     def test_create_breast_feed_event(self):
         self.assert_event_created("breast_feed", {"left_time": 10, "right_time": 15})
 
