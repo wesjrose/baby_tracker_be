@@ -21,17 +21,18 @@ class GuardianMapping(models.Model):
         primary_key=True, unique=True, editable=True, default=uuid.uuid4
     )
     baby = models.ForeignKey(
-        Baby, on_delete=models.PROTECT, related_name="assigned_baby"
+        Baby, on_delete=models.CASCADE, related_name="assigned_baby"
     )
     guardian = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="assigned_guardian",
     )
 
 
 class BabyEvent(models.Model):
     id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4)
+    baby = models.ForeignKey(to=Baby, on_delete=models.CASCADE)
     type = models.CharField()
     data = models.JSONField(default=dict, blank=True, default=None)
     created_at = models.CharField()

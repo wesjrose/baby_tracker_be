@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .serializers import BabySerializer
-from .models import GuardianMapping, BabyEvent
+from .models import GuardianMapping, BabyEvent, Baby
 from .permissions import isGuardian
 from events.event_handler import verify_event
 
@@ -40,7 +40,9 @@ class EventView(APIView):
 
     permission_classes = [IsAuthenticated, isGuardian]
 
-    def post(self, request):
+    def post(self, request, baby_id):
+        baby = get_object_or_404(Baby, pk=baby_id)
+        self.check_object_permissions(request, baby)
 
         event = request.data
 
@@ -49,6 +51,7 @@ class EventView(APIView):
 
         event = BabyEvent.objects.create(
             type=event.pop("type"),
+            baby=baby,
             notes=event.pop("notes", None),
             created_at=event.pop("created_at"),
             data=event,
