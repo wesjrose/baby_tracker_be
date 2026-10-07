@@ -70,7 +70,7 @@ class EventView(APIView):
         This endpoint will return a list of the matching events
         """
 
-        params_serializer = GetEventsSerializer(data=request.params)
+        params_serializer = GetEventsSerializer(data=request.query_params)
         params_serializer.is_valid(raise_exception=True)
         params = params_serializer.data
 
@@ -78,7 +78,7 @@ class EventView(APIView):
         self.check_object_permissions(request, baby)
         ordering = "created_at" if params["asc"] else "-created_at"
 
-        events = BabyEvent.objects.filter(baby=baby, type=params["type"]).order_by(
+        events = BabyEvent.objects.filter(baby=baby, type_in=params["type"]).order_by(
             ordering
         )
 

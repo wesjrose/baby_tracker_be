@@ -4,6 +4,9 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import Baby, BabyEvent, GuardianMapping
+from .serializers import EventSerializer
+
+import json
 
 User = get_user_model()
 
@@ -193,6 +196,9 @@ class GetEventsTests(APITestCase):
             response = self.client.post(self.url, event, format="json")
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        db_events = BabyEvent.objects.filter(baby=self.baby, type="bottle_feed")
+        self.assertEqual(len(bottle_feeds), db_events.count())
+
         response = self.client.get(self.url, {"type": "bottle_feed", "asc": "true"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -200,6 +206,53 @@ class GetEventsTests(APITestCase):
 
         returned = sorted(response.data, key=lambda event: event["created_at"])
         for sent, received in zip(bottle_feeds, returned):
+            self.assertIn("id", received)
+            self.assertEqual(str(received["baby_id"]), str(self.baby.pk))
+            self.assertEqual(received["created_at"], sent["created_at"])
+            self.assertEqual(received["notes"], sent["notes"])
+            self.assertEqual(received["data"], sent["data"])
+
+    def test_get_events_returns_different_types(self):
+        self.authenticate()
+        feeds = [
+            {
+                "type": "bottle_feed",
+                "created_at": "2026-10-06T08:30:00Z",
+                "notes": "Morning feed",
+                "data": {"amount": 120, "contents": "formula"},
+            },
+            {
+                "type": "bottle_feed",
+                "created_at": "2026-10-06T12:00:00Z",
+                "notes": "Midday feed",
+                "data": {"amount": 90, "contents": "breast_milk"},
+            },
+            {
+                "type": "breast_feed",
+                "created_at": "2026-10-06T13:00:00Z",
+                "notes": "Midday feed",
+                "data": {"left_time": 100, "right_time": 200},
+            },
+        ]
+        diaper = {
+            "type": "diaper",
+            "created_at": "2026-10-06T09:15:00Z",
+            "notes": "Quick change",
+            "data": {"contents": "wet"},
+        }
+        for event in [*feeds, diaper]:
+            response = self.client.post(self.url, event, format="json")
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(
+            self.url, {"type": ["bottle_feed", "breast_feed"], "asc": "true"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), len(feeds))
+
+        returned = sorted(response.data, key=lambda event: event["created_at"])
+        for sent, received in zip(feeds, returned):
             self.assertIn("id", received)
             self.assertEqual(str(received["baby_id"]), str(self.baby.pk))
             self.assertEqual(received["created_at"], sent["created_at"])

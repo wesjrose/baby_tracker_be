@@ -64,7 +64,10 @@ EVENT_TYPES = {
 
 
 class GetEventsSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=EVENT_TYPES)
+    type = serializers.ListField(
+        required=False,
+        child=serializers.ChoiceField(choices=EVENT_TYPES),
+    )
     asc = serializers.BooleanField()
 
 
@@ -82,4 +85,4 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BabyEvent
-        fields = ["id", "created_at", "notes", "data", "baby_id"]
+        fields = ["id", "created_at", "notes", "data", "baby_id", "type"]
