@@ -148,3 +148,60 @@ class CreateEventTests(APITestCase):
                 "diaper_rash": True,
             },
         )
+
+
+class GetEventsTests(APITestCase):
+    def setUp(self):
+        self.email = "parent@example.com"
+        self.password = "s3cure-Passw0rd!"
+        self.user = User.objects.create_user(email=self.email, password=self.password)
+        self.baby = Baby.objects.create(name="Charlie")
+        GuardianMapping.objects.create(baby=self.baby, guardian=self.user)
+        self.url = reverse("event", kwargs={"baby_id": self.baby.pk})
+
+    def authenticate(self):
+        response = self.client.post(
+            reverse("token_obtain_pair"),
+            {"email": self.email, "password": self.password},
+            format="json",
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['access']}")
+
+    def test_get_events_returns_created_events_of_requested_type(self):
+        self.authenticate()
+        bottle_feeds = [
+            {
+                "type": "bottle_feed",
+                "created_at": "2026-10-06T08:30:00Z",
+                "notes": "Morning feed",
+                "data": {"amount": 120, "contents": "formula"},
+            },
+            {
+                "type": "bottle_feed",
+                "created_at": "2026-10-06T12:00:00Z",
+                "notes": "Midday feed",
+                "data": {"amount": 90, "contents": "breast_milk"},
+            },
+        ]
+        diaper = {
+            "type": "diaper",
+            "created_at": "2026-10-06T09:15:00Z",
+            "notes": "Quick change",
+            "data": {"contents": "wet"},
+        }
+        for event in [*bottle_feeds, diaper]:
+            response = self.client.post(self.url, event, format="json")
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(self.url, {"type": "bottle_feed", "asc": "true"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), len(bottle_feeds))
+
+        returned = sorted(response.data, key=lambda event: event["created_at"])
+        for sent, received in zip(bottle_feeds, returned):
+            self.assertIn("id", received)
+            self.assertEqual(str(received["baby_id"]), str(self.baby.pk))
+            self.assertEqual(received["created_at"], sent["created_at"])
+            self.assertEqual(received["notes"], sent["notes"])
+            self.assertEqual(received["data"], sent["data"])

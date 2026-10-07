@@ -1,6 +1,8 @@
+from django.core.exceptions import ValidationError
+
 from rest_framework import serializers
 
-from .models import Baby
+from .models import Baby, BabyEvent
 
 
 class BabySerializer(serializers.ModelSerializer):
@@ -52,3 +54,32 @@ class DiaperDataSerializer(serializers.Serializer):
 
 class DiaperSerializer(BaseEventSerializer):
     data = DiaperDataSerializer()
+
+
+EVENT_TYPES = {
+    "bottle_feed": BottleFeedSerializer,
+    "breast_feed": BreastFeedSerializer,
+    "diaper": DiaperSerializer,
+}
+
+
+class GetEventsSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=EVENT_TYPES)
+    asc = serializers.BooleanField()
+
+
+def get_event_serializer(event: dict):
+
+    event_type = event.get("type", None)
+    if event_type not in EVENT_TYPES:
+        raise ValidationError(f"{event_type} is not a valid event type")
+    return EVENT_TYPES[event_type](data=event)
+
+
+class EventSerializer(serializers.ModelSerializer):
+
+    baby_id = serializers.PrimaryKeyRelatedField(source="baby", read_only=True)
+
+    class Meta:
+        model = BabyEvent
+        fields = ["id", "created_at", "notes", "data", "baby_id"]
