@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,6 +12,7 @@ class UserView(APIView):
 
     permission_classes = [AllowAny]
 
+    @extend_schema(request=UserSerializer, responses={201: UserSerializer})
     def post(self, request):
         """
         This endpoint is for creating a new user
