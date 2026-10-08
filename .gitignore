@@ -45,3 +45,4 @@ dist/
 # Automatically keep migrations out of scope, must force to add avoiding accidental
 # commits
 */migrations/*
+claude_sessions.md
